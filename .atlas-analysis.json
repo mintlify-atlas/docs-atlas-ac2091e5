@@ -1,0 +1,82 @@
+{
+  "projectType": "cli-tool",
+  "projectName": "Laser",
+  "projectDescription": "Terminal-based coding agent that operates inside repositories with multi-model support",
+  "theme": "aspen",
+  "primaryColor": "#FF4444",
+  "lightColor": "#FF6666",
+  "darkColor": "#CC0000",
+  "navigation": {
+    "groups": [
+      {
+        "group": "Get Started",
+        "pages": [
+          "introduction",
+          "installation",
+          "quickstart"
+        ]
+      },
+      {
+        "group": "Usage",
+        "pages": [
+          "usage/interactive-mode",
+          "usage/non-interactive-mode",
+          "usage/planning-mode",
+          "usage/commands"
+        ]
+      },
+      {
+        "group": "Configuration",
+        "pages": [
+          "configuration/models",
+          "configuration/agents-file",
+          "configuration/options"
+        ]
+      },
+      {
+        "group": "Examples",
+        "pages": [
+          "examples/basic-workflow",
+          "examples/multi-model",
+          "examples/planning"
+        ]
+      },
+      {
+        "group": "Reference",
+        "pages": [
+          "reference/cli-flags",
+          "reference/slash-commands",
+          "reference/providers"
+        ]
+      },
+      {
+        "group": "Advanced",
+        "pages": [
+          "advanced/troubleshooting",
+          "advanced/development"
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Interactive terminal-based coding agent",
+    "Multi-model provider support (Anthropic, Google, OpenAI)",
+    "Repository-aware with AGENTS.md instructions",
+    "Planning mode with checklist tracking",
+    "Non-interactive single-shot execution",
+    "Built on kosong framework"
+  ],
+  "publicApiSurface": [
+    "laser (main command)",
+    "--model <provider>/<model>",
+    "--cwd <directory>",
+    "--prompt <text>",
+    "--plan",
+    "--max-tokens <int>",
+    "/quit (interactive)",
+    "/reset (interactive)",
+    "/usage (interactive)",
+    "/plan (interactive)",
+    "!<command> (interactive shell)"
+  ]
+}
