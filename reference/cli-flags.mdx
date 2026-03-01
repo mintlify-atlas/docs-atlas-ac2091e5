@@ -1,0 +1,118 @@
+---
+title: CLI Flags
+description: Complete reference of all command-line flags for Laser
+---
+
+Laser accepts the following command-line flags to configure its behavior:
+
+## --model
+
+<ParamField path="--model" type="string" default="openai/gpt-5.2-codex">
+  Model identifier in the form `<provider>/<model>`
+  
+  Examples:
+  ```bash
+  laser --model openai/gpt-5.2-codex
+  laser --model anthropic/claude-opus-4-5
+  laser --model google/gemini-3-pro-preview
+  laser --model chat/glm-4.7
+  ```
+  
+  Available providers: `anthropic`, `google`, `openai`, `chat`
+  
+  See [Providers](/reference/providers) for the complete list of supported providers.
+</ParamField>
+
+## --max-tokens
+
+<ParamField path="--max-tokens" type="integer" default="2048">
+  Default maximum tokens for model responses
+  
+  **Note:** This flag only applies to Anthropic models. Other providers ignore this setting.
+  
+  Example:
+  ```bash
+  laser --model anthropic/claude-opus-4-5 --max-tokens 4096
+  ```
+</ParamField>
+
+## --cwd
+
+<ParamField path="--cwd" type="string" default="current directory">
+  Working directory to run the session from
+  
+  Changes where Laser reads/writes files and executes shell commands. Useful for operating on a different repository without changing your current terminal location.
+  
+  Example:
+  ```bash
+  laser --cwd /path/to/your/repo
+  ```
+</ParamField>
+
+## --prompt
+
+<ParamField path="--prompt" type="string" default="none">
+  Run a single non-interactive prompt and exit
+  
+  When provided, Laser executes the prompt and exits instead of starting an interactive session. Useful for automation and scripting.
+  
+  Example:
+  ```bash
+  laser --prompt "Find failing tests and fix them"
+  laser --prompt "Run tests and summarize failures"
+  ```
+  
+  If omitted, Laser starts in interactive mode.
+</ParamField>
+
+## --plan
+
+<ParamField path="--plan" type="boolean" default="false">
+  Instruct the agent to write a plan checklist before taking actions
+  
+  When enabled, Laser will:
+  1. Create a plan file at `plans/<task_slug>_plan.md` before executing the task
+  2. Write the plan as a Markdown checklist (`- [ ]` / `- [x]`)
+  3. Update the checklist as work progresses (checking off items, adding/removing steps)
+  
+  Example:
+  ```bash
+  laser --plan
+  laser --plan --prompt "Update README"
+  ```
+  
+  You can also toggle planning mode interactively using the `/plan` slash command.
+</ParamField>
+
+## Examples
+
+### Interactive mode (default)
+```bash
+laser
+```
+
+### Specify a model
+```bash
+laser --model openai/gpt-5.2-codex
+```
+
+### Change working directory
+```bash
+laser --cwd /path/to/repo
+```
+
+### Non-interactive single-shot mode
+```bash
+laser --prompt "Run tests and summarize failures"
+```
+
+### Planning mode
+```bash
+laser --plan
+laser --plan --prompt "Update README"
+```
+
+### Combine multiple flags
+```bash
+laser --model anthropic/claude-opus-4-5 --max-tokens 4096 --cwd /path/to/repo --plan
+```

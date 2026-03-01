@@ -1,0 +1,160 @@
+---
+title: Basic Workflow
+description: Step-by-step guide to using Laser in your repository
+---
+
+This guide walks through a typical Laser workflow, from starting the agent to reviewing and iterating on changes.
+
+## Starting Laser
+
+Navigate to your repository and start Laser:
+
+```bash
+laser
+```
+
+You'll see a banner with your current model and working directory:
+
+```text
+╭─────────────────────────────────────────────╮
+│ Laser                                       │
+│ - Model: openai/gpt-5.2-codex              │
+│ - Directory: /home/user/my-project         │
+│ - Tip: type /quit to exit                  │
+│        type /reset to clear history        │
+╰─────────────────────────────────────────────╯
+```
+
+## Describe Your Changes
+
+<Steps>
+  <Step title="State what you want to change">
+    Laser works best with clear, specific requests. Describe the feature, bug fix, or refactoring you need:
+
+    ```text
+    laser> Add input validation to the login form. Check that email is valid and password is at least 8 characters.
+    ```
+  </Step>
+
+  <Step title="Laser inspects the repository">
+    Laser will use `rg` (ripgrep) to search for relevant files:
+
+    ```bash
+    $: Search for login form files
+    ```
+
+    It reads files to understand the current implementation:
+
+    ```bash
+    $: Read src/components/LoginForm.tsx
+    ```
+  </Step>
+
+  <Step title="Laser makes edits">
+    The agent modifies files as needed. You'll see which files are being edited:
+
+    ```bash
+    $: Edit src/components/LoginForm.tsx
+    ```
+
+    After making changes, Laser checks the diff:
+
+    ```bash
+    $: Check git diff
+    ```
+  </Step>
+
+  <Step title="Review the changes">
+    Laser presents a summary of what changed:
+
+    ```markdown
+    I've added validation to the login form:
+
+    - Email validation using regex pattern
+    - Password length check (minimum 8 characters)
+    - Error messages displayed to the user
+
+    The changes are in src/components/LoginForm.tsx.
+    ```
+  </Step>
+</Steps>
+
+## Iterating on Changes
+
+If you need adjustments, continue the conversation:
+
+```text
+laser> The error messages should be red and display below the input fields
+```
+
+Laser maintains context from the previous interaction and refines the implementation.
+
+## Multi-line Requests
+
+For complex tasks, use backslash (`\`) to continue across multiple lines:
+
+```text
+laser> Refactor the authentication module to:\
+... - Extract validation logic into a separate file\
+... - Add unit tests for each validator\
+... - Update the documentation
+```
+
+## Running Tests
+
+Ask Laser to run tests to verify your changes:
+
+```text
+laser> Run the tests for the login form
+```
+
+Laser will execute the appropriate test command and show the results.
+
+## Interactive Commands
+
+During your session, you can use these commands:
+
+- `/usage` — See cumulative token usage
+- `/reset` — Clear conversation history and start fresh
+- `/quit` — Exit Laser
+- `!<command>` — Run a shell command directly (bypasses the agent)
+
+### Example: Direct Shell Commands
+
+```text
+laser> !git status
+```
+
+This runs `git status` locally without involving the AI model.
+
+## Conservative by Design
+
+Laser avoids destructive operations:
+
+- No `rm -rf` commands
+- No `git reset --hard`
+- Always checks diffs before suggesting you commit
+- Respects `.gitignore` patterns
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Be specific" icon="bullseye">
+    "Add validation to the form" is better than "improve the form"
+  </Card>
+  <Card title="Review diffs" icon="code-compare">
+    Always check `git diff` before committing changes
+  </Card>
+  <Card title="Test early" icon="flask">
+    Ask Laser to run tests after changes to catch issues quickly
+  </Card>
+  <Card title="Use /reset" icon="rotate-left">
+    Clear history when switching to a different task to reduce token usage
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+- Learn about [using different models](/examples/multi-model)
+- Try [planning mode](/examples/planning) for complex tasks
+- Set up [repository instructions](/configuration/agents-file)

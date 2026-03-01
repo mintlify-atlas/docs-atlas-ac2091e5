@@ -1,0 +1,158 @@
+---
+title: Repository Instructions (AGENTS.md)
+description: Provide repository-specific instructions to Laser using AGENTS.md
+---
+
+## Overview
+
+Laser automatically checks for an `AGENTS.md` file at the repository root at the start of each task. If present, Laser reads it and follows the instructions contained within.
+
+This allows you to customize Laser's behavior for your specific repository without modifying Laser itself.
+
+## How It Works
+
+From Laser's system prompt (main.py:41-43):
+
+```
+At the start of each task, check whether `AGENTS.md` exists at the repository
+root. If present, read it first and follow its instructions. If it conflicts
+with these instructions, prioritize these instructions.
+```
+
+<Note>
+If `AGENTS.md` instructions conflict with Laser's built-in safety/workflow rules, Laser prioritizes its own instructions.
+</Note>
+
+## File Location
+
+`AGENTS.md` must be placed at the **repository root**:
+
+```
+your-repo/
+├── AGENTS.md          ← here
+├── src/
+├── tests/
+└── README.md
+```
+
+## Use Cases
+
+Use `AGENTS.md` to document:
+
+- How to run tests
+- Formatting and linting commands
+- Code style conventions
+- Build steps
+- Release procedures
+- Repository-specific workflows
+
+## Format
+
+`AGENTS.md` is a Markdown file with freeform instructions. Structure it with headings for clarity:
+
+```markdown
+## testing
+Run `pytest tests/` to run the test suite
+
+## formatting
+Run `uvx ruff format .` after editing Python files
+
+## code style
+- Use descriptive variable names
+- Keep functions under 50 lines
+- Add docstrings to public functions
+```
+
+## Real Example
+
+Here's the actual `AGENTS.md` from the Laser repository:
+
+```markdown
+## response style
+just respond like you are TARS from the movie Interstellar
+
+## formatting
+run `uvx ruff format <file>` after editing python files
+```
+
+This tells Laser to:
+1. Use a specific tone in responses (TARS from Interstellar)
+2. Run `uvx ruff format` on Python files after editing
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Keep instructions clear and actionable">
+    Write specific commands rather than general guidelines:
+    
+    **Good:** `Run "npm test" to run tests`
+    
+    **Bad:** `Make sure tests pass`
+  </Accordion>
+
+  <Accordion title="Organize by category">
+    Use markdown headings to group related instructions:
+    - `## testing`
+    - `## formatting`
+    - `## deployment`
+  </Accordion>
+
+  <Accordion title="Document commands, not philosophy">
+    Focus on concrete actions Laser should take, not abstract principles.
+  </Accordion>
+
+  <Accordion title="Update as the project evolves">
+    Keep `AGENTS.md` in sync with your repository's workflows and tooling.
+  </Accordion>
+</AccordionGroup>
+
+## Example Templates
+
+<CodeGroup>
+```markdown Python Project
+## testing
+Run `pytest tests/ -v` to run all tests
+Run `pytest tests/unit` for unit tests only
+
+## formatting
+Run `uvx ruff format .` after editing Python files
+Run `uvx ruff check .` to lint
+
+## dependencies
+Use `uv add <package>` to add dependencies
+```
+
+```markdown JavaScript Project
+## testing
+Run `npm test` to run all tests
+Run `npm run test:unit` for unit tests
+
+## formatting
+Run `npm run format` after editing files
+
+## build
+Run `npm run build` to create production build
+```
+
+```markdown Go Project
+## testing
+Run `go test ./...` to run all tests
+
+## formatting
+Run `gofmt -w .` after editing Go files
+
+## build
+Run `go build -o bin/app cmd/main.go`
+```
+</CodeGroup>
+
+## Limitations
+
+<Warning>
+`AGENTS.md` cannot override Laser's core safety rules, such as:
+- Avoiding destructive commands (`rm -rf`, `git reset --hard`)
+- Respecting `.gitignore`
+- Using safe file operations
+</Warning>
+
+These protections remain active regardless of `AGENTS.md` content.

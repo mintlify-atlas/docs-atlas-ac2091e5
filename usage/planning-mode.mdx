@@ -1,0 +1,261 @@
+---
+title: Planning Mode
+description: Have Laser create a checklist plan file before executing tasks
+---
+
+Planning mode instructs Laser to write a structured checklist plan to a markdown file **before** taking any actions. This helps with complex tasks, provides visibility into the approach, and creates a record of the work.
+
+## Enabling Planning Mode
+
+Use the `--plan` flag to enable planning mode:
+
+```bash
+laser --plan
+```
+
+This works in both interactive and non-interactive modes:
+
+<Tabs>
+  <Tab title="Interactive with Planning">
+    ```bash
+    laser --plan
+    ```
+    
+    Every task you give will start with a plan file.
+  </Tab>
+  
+  <Tab title="Non-Interactive with Planning">
+    ```bash
+    laser --plan --prompt "Add user authentication to the API"
+    ```
+    
+    Creates a plan, executes it, and exits.
+  </Tab>
+</Tabs>
+
+## How It Works
+
+When planning mode is enabled, Laser receives an augmented prompt:
+
+<Steps>
+  <Step title="Create the plan file">
+    Before doing anything else, Laser:
+    - Derives a short task slug from your request (in snake_case)
+    - Creates a `plans/` directory if needed
+    - Writes a plan to `plans/<task_slug>_plan.md`
+  </Step>
+  
+  <Step title="Write structured checklist">
+    The plan is formatted as a Markdown checklist:
+    
+    ```markdown
+    # Add User Authentication
+    
+    - [ ] Create auth middleware in src/api/middleware/
+    - [ ] Add JWT token generation utility
+    - [ ] Update user model with password hashing
+    - [ ] Write tests for auth endpoints
+    - [ ] Update API documentation
+    ```
+    
+    Each item includes explicit files and commands.
+  </Step>
+  
+  <Step title="Update as work progresses">
+    As Laser works through the task:
+    - Items are checked off: `- [x]`
+    - New items are added if needed
+    - Items are removed if no longer relevant
+    - The file stays accurate and up-to-date
+  </Step>
+  
+  <Step title="Execute the task">
+    After creating the plan, Laser proceeds with the actual work.
+  </Step>
+</Steps>
+
+## Plan File Format
+
+Plans are stored in the `plans/` directory at your repository root:
+
+```
+your-repo/
+├── plans/
+│   ├── add_user_auth_plan.md
+│   ├── refactor_database_plan.md
+│   └── fix_ci_pipeline_plan.md
+├── src/
+└── tests/
+```
+
+### File Naming
+
+The filename is derived from your request:
+
+- **"Add user authentication"** → `add_user_authentication_plan.md`
+- **"Refactor database layer"** → `refactor_database_layer_plan.md`
+- **"Fix failing CI tests"** → `fix_failing_ci_tests_plan.md`
+
+### Checklist Syntax
+
+Laser uses standard Markdown task lists:
+
+```markdown
+- [ ] Incomplete task
+- [x] Completed task
+```
+
+## Example Session
+
+Here's a planning mode session in action:
+
+```
+laser > Add input validation to all API endpoints
+
+$: mkdir -p plans
+$: cat > plans/add_input_validation_plan.md
+
+# Plan: Add Input Validation
+
+- [ ] Audit existing endpoints in src/api/routes.py
+- [ ] Create validation schema using Pydantic
+- [ ] Add validation middleware
+- [ ] Update tests to cover validation errors
+- [ ] Document validation rules in API docs
+
+$: rg -n "@app.route" src/api/
+$: cat src/api/routes.py
+
+[Laser starts working and updates the plan...]
+
+$: sed -i '3s/- \[ \]/- [x]/' plans/add_input_validation_plan.md
+
+[Continues through checklist...]
+```
+
+## Toggling Planning Mode Interactively
+
+In interactive mode, you can toggle planning on and off with the `/plan` command:
+
+```
+laser > /plan
+┌────────────────────────────────────┐
+│ /plan                              │
+│ Planning is now enabled.           │
+└────────────────────────────────────┘
+
+laser > Add error handling
+$: mkdir -p plans
+$: cat > plans/add_error_handling_plan.md
+...
+
+laser > /plan
+┌────────────────────────────────────┐
+│ /plan                              │
+│ Planning is now disabled.          │
+└────────────────────────────────────┘
+
+laser > Fix typo in README
+[Works directly without creating a plan file]
+```
+
+<Note>
+  The `/plan` command **toggles** planning mode. Each time you run it, planning switches between enabled and disabled.
+</Note>
+
+## When to Use Planning Mode
+
+Planning mode is especially useful for:
+
+<CardGroup cols={2}>
+  <Card title="Complex Tasks" icon="diagram-project">
+    Multi-step work that touches many files or requires coordination across the codebase.
+  </Card>
+  
+  <Card title="Unfamiliar Codebases" icon="map">
+    When working on a new project where you want to see the strategy before execution.
+  </Card>
+  
+  <Card title="Documentation" icon="book">
+    Creating a record of what was done for future reference or team review.
+  </Card>
+  
+  <Card title="Iterative Development" icon="rotate">
+    Tasks where the scope might expand or change as you learn more.
+  </Card>
+</CardGroup>
+
+## Benefits
+
+### Visibility
+
+You can review the plan before Laser starts executing:
+
+```bash
+# After Laser writes the plan
+cat plans/add_feature_x_plan.md
+
+# Then continue or adjust your request
+```
+
+### Progress Tracking
+
+Watch the checklist update in real-time:
+
+```bash
+# In another terminal
+watch -n 1 cat plans/current_task_plan.md
+```
+
+### Team Collaboration
+
+Plan files serve as:
+- Work logs
+- Implementation documentation  
+- Reference for code reviews
+- Onboarding material
+
+<Tip>
+  Commit plan files to version control to document how features were built:
+  
+  ```bash
+  git add plans/
+  git commit -m "Add implementation plan for feature X"
+  ```
+</Tip>
+
+## Implementation Details
+
+From `main.py`, when planning mode is enabled, your message is wrapped:
+
+```python
+def planning_prompt(user_message: str) -> str:
+    return (
+        "Before doing anything else, create/update a plan file "
+        "in the repo using the bash tool. "
+        "Pick a short <task_slug> derived from the request (snake_case). "
+        "Write the plan to plans/<task_slug>_plan.md. "
+        "Create the plans/ directory if needed. "
+        "Write the plan as a Markdown checklist."
+        "As you work, keep updating the same checklist."
+        "After writing the plan file, proceed with the task."
+        f"\n\nUser request:\n{user_message}"
+    )
+```
+
+This prompt instructs Laser to:
+1. Create the plan file **first**
+2. Use checklist syntax (`- [ ]` / `- [x]`)
+3. Keep the file updated as work progresses
+4. Then proceed with the actual task
+
+## Best Practices
+
+- **Review the plan**: After Laser creates it, read through to ensure the approach makes sense
+- **Keep plans directory**: Don't gitignore `plans/` — these files are valuable documentation
+- **Use for learning**: Read plan files to understand how Laser approaches problems
+- **Combine with AGENTS.md**: Planning mode respects repository instructions from `AGENTS.md`
+
+<Note>
+  Planning mode doesn't change Laser's safety behavior. It still avoids destructive commands and respects `.gitignore`.
+</Note>

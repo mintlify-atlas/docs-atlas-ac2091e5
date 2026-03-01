@@ -1,0 +1,261 @@
+---
+title: Troubleshooting
+description: Common issues and solutions when running Laser
+---
+
+This guide covers common issues you might encounter when using Laser and how to resolve them.
+
+## Dependency Issues
+
+### Missing ripgrep (rg)
+
+Laser requires [`ripgrep`](https://github.com/BurntSushi/ripgrep) to be installed on your system. The `check_deps()` function verifies this at startup.
+
+<Accordion title="Error: Missing required dependencies">
+
+**Error message:**
+```
+Missing required dependencies:
+
+- ripgrep (rg): please install from https://github.com/BurntSushi/ripgrep#installation
+```
+
+**Solution:**
+
+Install ripgrep using your package manager:
+
+<CodeGroup>
+```bash macOS (Homebrew)
+brew install ripgrep
+```
+
+```bash Ubuntu/Debian
+sudo apt-get install ripgrep
+```
+
+```bash Fedora
+sudo dnf install ripgrep
+```
+
+```bash Arch Linux
+sudo pacman -S ripgrep
+```
+
+```bash Windows (Chocolatey)
+choco install ripgrep
+```
+
+```bash Cargo (all platforms)
+cargo install ripgrep
+```
+</CodeGroup>
+
+After installation, verify that `rg` is available:
+
+```bash
+rg --version
+```
+
+The check is performed in `laser/main.py` lines 157-169:
+
+```python
+def check_deps() -> None:
+    missing: list[tuple[str, str]] = []
+
+    if shutil.which("rg") is None:
+        missing.append(
+            ("ripgrep (rg)", "https://github.com/BurntSushi/ripgrep#installation")
+        )
+
+    if missing:
+        console.print("Missing required dependencies:\n")
+        for name, url in missing:
+            console.print(f"- {name}: please install from {url}")
+        raise SystemExit(1)
+```
+
+</Accordion>
+
+## Command Execution Issues
+
+### Shell commands fail
+
+<Accordion title="Commands fail with errors">
+
+**Problem:**
+Laser executes a shell command, but it fails with stderr output.
+
+**Debugging steps:**
+
+1. **Re-run the command manually** - Copy the exact command from Laser's output and run it in your terminal:
+   ```bash
+   # Example: if Laser ran "pytest tests/"
+   pytest tests/
+   ```
+
+2. **Check required tools are installed** - Verify the command-line tool exists:
+   ```bash
+   which pytest  # or the tool Laser tried to use
+   ```
+
+3. **Verify the working directory** - Ensure Laser is operating in the correct directory:
+   ```bash
+   # Check current directory when Laser runs
+   laser --cwd /path/to/your/repo
+   ```
+
+**Common causes:**
+- Missing dependencies (e.g., test framework not installed)
+- Incorrect file paths
+- Wrong working directory
+- Insufficient permissions
+
+</Accordion>
+
+## Directory and Path Issues
+
+### Operating in the wrong directory
+
+<Accordion title="Laser can't find my files or runs commands in the wrong location">
+
+**Problem:**
+Laser operates in the wrong directory and can't find your repository files.
+
+**Solution:**
+
+Use the `--cwd` flag to specify the correct working directory:
+
+```bash
+uvx --from git+https://github.com/ExpressGradient/laser laser --cwd /path/to/repo
+```
+
+Or if you have Laser installed:
+
+```bash
+laser --cwd /path/to/repo
+```
+
+**How it works:**
+
+The `ensure_cwd()` function in `laser/main.py` (lines 149-154) validates and changes to the specified directory:
+
+```python
+def ensure_cwd(cwd: str | None) -> None:
+    if cwd is None:
+        return
+    if not os.path.isdir(cwd):
+        raise SystemExit(f"--cwd path does not exist or is not a directory: {cwd}")
+    os.chdir(cwd)
+```
+
+**Error message if path doesn't exist:**
+```
+--cwd path does not exist or is not a directory: /invalid/path
+```
+
+</Accordion>
+
+## Model and Provider Issues
+
+<Accordion title="Invalid model identifier">
+
+**Error message:**
+```
+--model must be in the form <provider>/<model>, e.g. openai/gpt-5.2-codex
+```
+
+**Solution:**
+
+Always use the format `<provider>/<model>`:
+
+```bash
+laser --model anthropic/claude-opus-4-5
+laser --model openai/gpt-5.2-codex
+laser --model google/gemini-3-pro-preview
+```
+
+Supported providers:
+- `anthropic`
+- `openai`
+- `google`
+- `chat` (OpenAI-compatible legacy models)
+
+</Accordion>
+
+<Accordion title="Unknown provider error">
+
+**Error message:**
+```
+Unknown provider 'xyz'. Known providers: anthropic, chat, google, openai
+```
+
+**Solution:**
+
+Use one of the supported providers. Check the current list in `laser/main.py` lines 24-29:
+
+```python
+PROVIDER_CONFIGS = {
+    "anthropic": (Anthropic, {}),
+    "google": (GoogleGenAI, {}),
+    "openai": (OpenAIResponses, {}),
+    "chat": (OpenAILegacy, {}),
+}
+```
+
+</Accordion>
+
+<Accordion title="Missing API keys">
+
+**Problem:**
+Provider authentication fails or returns errors about missing credentials.
+
+**Solution:**
+
+Set the required environment variable before running Laser:
+
+```bash
+export OPENAI_API_KEY="your-api-key-here"
+laser --model openai/gpt-5.2-codex
+```
+
+Common environment variables:
+- OpenAI: `OPENAI_API_KEY`
+- Anthropic: `ANTHROPIC_API_KEY`
+- Google: `GOOGLE_API_KEY`
+
+For OpenAI-compatible endpoints, you may also need:
+```bash
+export OPENAI_BASE_URL="https://your-endpoint.com/v1"
+```
+
+</Accordion>
+
+## Getting Help
+
+If you encounter issues not covered here:
+
+1. Check the Laser banner when starting - it shows your current model and directory:
+   ```
+   ┌────────────────────────────────────────────┐
+   │ Laser                                      │
+   │ - Model: openai/gpt-5.2-codex             │
+   │ - Directory: /home/user/myrepo            │
+   │ - Tip: type /quit to exit                 │
+   │        type /reset to clear history       │
+   └────────────────────────────────────────────┘
+   ```
+
+2. Run with `--help` to see all available options:
+   ```bash
+   laser --help
+   ```
+
+3. Verify your setup:
+   ```bash
+   # Check ripgrep
+   rg --version
+   
+   # Check Python environment
+   python --version
+   uv --version
+   ```

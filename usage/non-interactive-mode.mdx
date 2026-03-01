@@ -1,0 +1,196 @@
+---
+title: Non-Interactive Mode
+description: Run Laser with a single prompt and exit automatically when the task is complete
+---
+
+Non-interactive mode (also called "single-shot mode") runs a single task and exits automatically when complete. This is useful for automation, CI/CD pipelines, or quick one-off tasks.
+
+## Basic Usage
+
+Use the `--prompt` flag to provide your task:
+
+```bash
+laser --prompt "Run tests and summarize failures"
+```
+
+Laser will:
+
+1. Execute the task (using tools as needed)
+2. Print the final response
+3. Exit automatically
+
+## How It Differs from Interactive Mode
+
+<CardGroup cols={2}>
+  <Card title="Interactive Mode" icon="comments">
+    - Shows banner on startup
+    - Waits for user input at prompt
+    - Maintains conversation history
+    - Requires `/quit` to exit
+  </Card>
+  
+  <Card title="Non-Interactive Mode" icon="bolt">
+    - No banner display
+    - Runs single task from `--prompt`
+    - Exits after completion
+    - Ideal for scripts and automation
+  </Card>
+</CardGroup>
+
+## Examples
+
+### Running Tests
+
+```bash
+laser --prompt "Find all test files and run pytest with coverage"
+```
+
+### Code Analysis
+
+```bash
+laser --prompt "Search for TODO comments and create a summary report"
+```
+
+### Quick Fixes
+
+```bash
+laser --prompt "Fix any linting errors in the src/ directory"
+```
+
+### Documentation Updates
+
+```bash
+laser --prompt "Update the README with installation instructions for the new CLI tool"
+```
+
+## Combining with Other Flags
+
+Non-interactive mode works with all other Laser flags:
+
+<Tabs>
+  <Tab title="Different Directory">
+    ```bash
+    laser --cwd /path/to/repo --prompt "Run the build and fix any errors"
+    ```
+  </Tab>
+  
+  <Tab title="Specific Model">
+    ```bash
+    laser --model anthropic/claude-opus-4-5 --prompt "Refactor the database layer"
+    ```
+  </Tab>
+  
+  <Tab title="With Planning">
+    ```bash
+    laser --plan --prompt "Add user authentication to the API"
+    ```
+    
+    This creates a plan checklist first, then executes the task.
+  </Tab>
+  
+  <Tab title="Token Limit">
+    ```bash
+    laser --max-tokens 4096 --prompt "Analyze the codebase structure"
+    ```
+    
+    Note: `--max-tokens` only affects Anthropic models.
+  </Tab>
+</Tabs>
+
+## Execution Flow
+
+When running in non-interactive mode, Laser follows this process:
+
+<Steps>
+  <Step title="Parse the prompt">
+    Your `--prompt` value is added as the initial user message.
+  </Step>
+  
+  <Step title="Execute with tools">
+    Laser uses the `bash` tool to:
+    - Search files with `rg`
+    - Read code with `cat`
+    - Edit files with `sed`
+    - Run commands like tests, linters, etc.
+    
+    Tool calls continue in a loop until the task is complete.
+  </Step>
+  
+  <Step title="Print final response">
+    When Laser has no more tool calls to make, it prints the final response as formatted markdown.
+  </Step>
+  
+  <Step title="Exit">
+    The process exits automatically with the appropriate exit code.
+  </Step>
+</Steps>
+
+## Output Format
+
+Non-interactive mode prints:
+
+- **Tool summaries**: Each bash command executed is displayed with a green `$:` prefix
+- **Final response**: The agent's concluding message, rendered as markdown
+
+```
+$: rg -n "test_" src/
+$: pytest tests/ -v
+$: cat pytest.stdout
+
+All tests passed successfully. Coverage is at 87%.
+The following areas need additional test coverage:
+- src/api/webhooks.py (45%)
+- src/utils/validators.py (62%)
+```
+
+<Tip>
+  Combine non-interactive mode with shell redirection to save output:
+  
+  ```bash
+  laser --prompt "Analyze test coverage" > analysis.txt 2>&1
+  ```
+</Tip>
+
+## Use Cases
+
+### CI/CD Integration
+
+Run automated code quality checks:
+
+```yaml
+# .github/workflows/review.yml
+steps:
+  - name: AI Code Review
+    run: |
+      uvx --from git+https://github.com/ExpressGradient/laser laser \
+        --prompt "Review recent changes and identify potential bugs"
+```
+
+### Git Hooks
+
+Use as a pre-commit hook:
+
+```bash
+#!/bin/bash
+# .git/hooks/pre-commit
+laser --prompt "Check staged files for linting errors and fix them"
+```
+
+### Scripted Maintenance
+
+Automate routine tasks:
+
+```bash
+#!/bin/bash
+# weekly-maintenance.sh
+laser --prompt "Update all dependency versions in requirements.txt"
+laser --prompt "Run test suite and update any broken tests"
+laser --prompt "Generate updated API documentation"
+```
+
+<Note>
+  Even in non-interactive mode, Laser follows its safety principles:
+  - No destructive commands (`rm -rf`, `git reset --hard`)
+  - Respects `.gitignore` patterns
+  - Verifies changes with `git diff`
+</Note>

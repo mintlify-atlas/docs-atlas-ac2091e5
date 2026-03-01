@@ -1,0 +1,214 @@
+---
+title: CLI Options
+description: Command-line flags and environment variables for Laser
+---
+
+## Command-Line Flags
+
+Laser supports several CLI options to customize its behavior:
+
+### --model
+
+<ParamField path="--model" type="string" default="openai/gpt-5.2-codex">
+  Model identifier in the format `<provider>/<model>`
+  
+  **Examples:**
+  - `openai/gpt-5.2-codex`
+  - `anthropic/claude-opus-4-5`
+  - `google/gemini-3-pro-preview`
+  - `chat/glm-4.7`
+</ParamField>
+
+```bash
+laser --model anthropic/claude-opus-4-5
+```
+
+See [Model Providers](/configuration/models) for details.
+
+### --cwd
+
+<ParamField path="--cwd" type="string" default="current directory">
+  Working directory to run the session from. Laser will read/write files and execute commands in this directory.
+  
+  **Use cases:**
+  - Run Laser in a different repository
+  - Work on a specific subdirectory
+  - Operate on a repo outside your current location
+</ParamField>
+
+```bash
+laser --cwd /path/to/your/repo
+```
+
+<Note>
+If the specified path doesn't exist or isn't a directory, Laser will exit with an error.
+</Note>
+
+### --max-tokens
+
+<ParamField path="--max-tokens" type="integer" default="2048">
+  Default max tokens for model responses.
+  
+  **Important:** Only applies to Anthropic models. Other providers ignore this parameter.
+</ParamField>
+
+```bash
+laser --model anthropic/claude-opus-4-5 --max-tokens 4096
+```
+
+### --prompt
+
+<ParamField path="--prompt" type="string" default="null">
+  Run a single non-interactive prompt and exit.
+  
+  **Behavior:**
+  - If omitted: starts an interactive session
+  - If provided: runs the prompt once and exits
+</ParamField>
+
+```bash
+laser --prompt "Run tests and summarize failures"
+```
+
+This is useful for:
+- CI/CD pipelines
+- Scripted workflows
+- One-off tasks
+
+### --plan
+
+<ParamField path="--plan" type="boolean" default="false">
+  Enable planning mode. Instructs Laser to write a plan checklist to `plans/<task>_plan.md` before taking actions.
+  
+  **Behavior:**
+  - Creates a `plans/` directory if needed
+  - Generates a task-specific plan file with Markdown checkboxes
+  - Updates the plan as work progresses
+</ParamField>
+
+```bash
+laser --plan
+```
+
+In interactive mode, you can also toggle planning with `/plan`:
+
+```text
+laser> /plan
+Planning is now enabled.
+```
+
+## Environment Variables
+
+Laser requires provider-specific API keys set as environment variables:
+
+### OpenAI
+
+<ParamField path="OPENAI_API_KEY" type="string" required>
+  API key for OpenAI models
+</ParamField>
+
+```bash
+export OPENAI_API_KEY=sk-...
+laser --model openai/gpt-5.2-codex
+```
+
+### Anthropic
+
+<ParamField path="ANTHROPIC_API_KEY" type="string" required>
+  API key for Anthropic Claude models
+</ParamField>
+
+```bash
+export ANTHROPIC_API_KEY=sk-ant-...
+laser --model anthropic/claude-opus-4-5
+```
+
+### Google
+
+<ParamField path="GOOGLE_API_KEY" type="string" required>
+  API key for Google GenAI models
+</ParamField>
+
+```bash
+export GOOGLE_API_KEY=...
+laser --model google/gemini-3-pro-preview
+```
+
+### OpenAI-Compatible Endpoints
+
+<ParamField path="OPENAI_BASE_URL" type="string" optional>
+  Base URL for OpenAI-compatible endpoints (used with the `chat` provider)
+</ParamField>
+
+```bash
+export OPENAI_BASE_URL=https://your-endpoint.com/v1
+export OPENAI_API_KEY=your_key_here
+laser --model chat/glm-4.7
+```
+
+## Usage Examples
+
+<CodeGroup>
+```bash Interactive Mode
+# Start interactive session with default model
+laser
+
+# Use specific model
+laser --model anthropic/claude-opus-4-5
+
+# Work in different directory
+laser --cwd /path/to/repo
+
+# Enable planning mode
+laser --plan
+```
+
+```bash Non-Interactive Mode
+# Single-shot command
+laser --prompt "Run tests and fix failures"
+
+# With specific model and directory
+laser --model anthropic/claude-opus-4-5 \
+      --cwd /path/to/repo \
+      --prompt "Update README"
+
+# With planning enabled
+laser --plan --prompt "Implement login feature"
+```
+
+```bash Advanced
+# All options combined
+OPENAI_API_KEY=sk-... \
+laser --model openai/gpt-5.2-codex \
+      --cwd ~/projects/myapp \
+      --max-tokens 4096 \
+      --plan \
+      --prompt "Refactor authentication module"
+```
+</CodeGroup>
+
+## Help
+
+View all available options:
+
+```bash
+laser --help
+```
+
+Output:
+
+```
+Terminal coding agent that operates on the current repository
+
+Interactive mode: chat with the agent; it can inspect files, edit code,
+and run shell commands (via tools).
+Non-interactive mode: run a single prompt and print the result.
+
+Options:
+  --model <provider>/<model>  Model identifier (default: openai/gpt-5.2-codex)
+  --max-tokens INTEGER        Max tokens (Anthropic only, default: 2048)
+  --cwd PATH                  Working directory (default: current directory)
+  --prompt TEXT               Single non-interactive prompt
+  --plan                      Write plan checklist before acting
+  -h, --help                  Show this help message
+```

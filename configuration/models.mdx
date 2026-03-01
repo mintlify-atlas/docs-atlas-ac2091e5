@@ -1,0 +1,106 @@
+---
+title: Model Providers
+description: Configure AI model providers and API keys for Laser
+---
+
+## Model Format
+
+Laser uses the `--model` flag to specify which AI provider and model to use:
+
+```bash
+laser --model <provider>/<model>
+```
+
+The model identifier must include both the provider and model name separated by a slash.
+
+### Examples
+
+```bash
+# OpenAI (default)
+laser --model openai/gpt-5.2-codex
+
+# Anthropic
+laser --model anthropic/claude-opus-4-5
+
+# Google
+laser --model google/gemini-3-pro-preview
+
+# OpenAI-compatible (chat)
+laser --model chat/glm-4.7
+```
+
+## Supported Providers
+
+Laser supports the following providers (defined in `PROVIDER_CONFIGS`):
+
+<CardGroup cols={2}>
+  <Card title="anthropic" icon="brain">
+    Anthropic Claude models
+  </Card>
+  <Card title="google" icon="sparkles">
+    Google GenAI models
+  </Card>
+  <Card title="openai" icon="robot">
+    OpenAI models via Responses API
+  </Card>
+  <Card title="chat" icon="message">
+    OpenAI-compatible legacy endpoints
+  </Card>
+</CardGroup>
+
+## API Keys
+
+Each provider requires an API key set as an environment variable before running Laser:
+
+<CodeGroup>
+```bash OpenAI
+export OPENAI_API_KEY=your_key_here
+laser --model openai/gpt-5.2-codex
+```
+
+```bash Anthropic
+export ANTHROPIC_API_KEY=your_key_here
+laser --model anthropic/claude-opus-4-5
+```
+
+```bash Google
+export GOOGLE_API_KEY=your_key_here
+laser --model google/gemini-3-pro-preview
+```
+</CodeGroup>
+
+<Note>
+Exact environment variable names depend on the provider SDK. Check the provider's documentation for details.
+</Note>
+
+## OpenAI-Compatible Endpoints
+
+For the `chat` provider (OpenAI-compatible legacy models), you can set a custom base URL:
+
+```bash
+export OPENAI_BASE_URL=https://your-endpoint.com/v1
+export OPENAI_API_KEY=your_key_here
+laser --model chat/glm-4.7
+```
+
+## Default Model
+
+If you don't specify `--model`, Laser defaults to:
+
+```bash
+openai/gpt-5.2-codex
+```
+
+## Max Tokens (Anthropic Only)
+
+For Anthropic models, you can control the maximum tokens per response:
+
+```bash
+laser --model anthropic/claude-opus-4-5 --max-tokens 4096
+```
+
+<Warning>
+The `--max-tokens` flag only applies to Anthropic models. Other providers ignore this parameter.
+</Warning>
+
+Default: `2048` tokens

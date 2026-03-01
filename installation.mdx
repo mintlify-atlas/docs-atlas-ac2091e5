@@ -1,0 +1,136 @@
+---
+title: Installation
+description: Install Laser using uv to get started in minutes
+---
+
+## Prerequisites
+
+Before installing Laser, you'll need:
+
+1. **Python 3.12 or higher** - Laser requires Python 3.12+
+2. **uv** - The recommended Python package manager
+3. **ripgrep** - Required for fast code search (the `rg` command)
+
+## Install uv
+
+<Steps>
+  <Step title="Install uv package manager">
+    If you don't have `uv` yet, install it following the official guide:
+    
+    [https://docs.astral.sh/uv/](https://docs.astral.sh/uv/)
+    
+    `uv` is a fast Python package manager that makes installing and running tools like Laser simple.
+  </Step>
+</Steps>
+
+## Install ripgrep
+
+Laser requires [`ripgrep`](https://github.com/BurntSushi/ripgrep) for fast code search. If it's not installed, Laser will exit at startup with instructions.
+
+Install ripgrep from: [https://github.com/BurntSushi/ripgrep#installation](https://github.com/BurntSushi/ripgrep#installation)
+
+## Installation Methods
+
+### Method 1: Run Directly (No Installation)
+
+You can run Laser directly from GitHub without installing it:
+
+```bash
+uvx --from git+https://github.com/ExpressGradient/laser laser
+```
+
+This is perfect for trying Laser without committing to an installation.
+
+### Method 2: Install as a Tool
+
+For regular use, install Laser so you can run the `laser` command directly:
+
+<Steps>
+  <Step title="Install Laser">
+    ```bash
+    uv tool install git+https://github.com/ExpressGradient/laser
+    ```
+  </Step>
+  
+  <Step title="Run Laser">
+    ```bash
+    laser
+    ```
+    
+    That's it! Laser will start in your current directory.
+  </Step>
+</Steps>
+
+## Upgrading Laser
+
+To upgrade to the latest version:
+
+```bash
+uv tool upgrade laser
+```
+
+## Configuration
+
+Laser requires API keys for the model providers you want to use. Set these as environment variables:
+
+<CodeGroup>
+
+```bash OpenAI
+export OPENAI_API_KEY="your-api-key-here"
+```
+
+```bash Anthropic
+export ANTHROPIC_API_KEY="your-api-key-here"
+```
+
+```bash Google
+export GOOGLE_API_KEY="your-api-key-here"
+```
+
+</CodeGroup>
+
+<Tip>
+  Add these exports to your shell configuration file (`.bashrc`, `.zshrc`, etc.) to make them permanent.
+</Tip>
+
+## Verify Installation
+
+Check that Laser is installed correctly:
+
+```bash
+laser --help
+```
+
+You should see Laser's help message with available options and commands.
+
+## Common Installation Issues
+
+<AccordionGroup>
+  <Accordion title="Missing ripgrep (rg)">
+    Laser requires ripgrep for fast code search. If you see an error about missing `rg`, install it from:
+    
+    [https://github.com/BurntSushi/ripgrep#installation](https://github.com/BurntSushi/ripgrep#installation)
+  </Accordion>
+  
+  <Accordion title="Python version too old">
+    Laser requires Python 3.12 or higher. Check your version with:
+    
+    ```bash
+    python --version
+    ```
+    
+    If needed, install a newer Python version before installing Laser.
+  </Accordion>
+  
+  <Accordion title="Command not found after installation">
+    If `laser` isn't found after installation, ensure `uv`'s tool directory is in your PATH. Check `uv`'s documentation for details on tool installation paths.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+Now that Laser is installed, learn how to use it:
+
+<Card title="Quick Start Guide" icon="rocket" href="/quickstart">
+  Learn the basic commands and start using Laser
+</Card>

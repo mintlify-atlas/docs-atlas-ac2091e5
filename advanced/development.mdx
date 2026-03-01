@@ -1,0 +1,268 @@
+---
+title: Development
+description: Working on Laser itself - running locally, testing changes, and contributing
+---
+
+This guide covers how to work on Laser's codebase if you're contributing or customizing it.
+
+## Running Laser Locally
+
+When developing Laser, you'll want to run it from your local checkout instead of the published version.
+
+### Method 1: Using uv run (recommended)
+
+Run Laser as a Python module from your development directory:
+
+```bash
+cd /path/to/laser
+uv run python -m laser
+```
+
+This method:
+- Uses your local source code
+- Automatically manages the virtual environment
+- Picks up changes immediately (no reinstall needed)
+- Works from anywhere in your Laser checkout
+
+**With command-line flags:**
+
+```bash
+uv run python -m laser --model anthropic/claude-opus-4-5
+uv run python -m laser --cwd /path/to/test/repo
+uv run python -m laser --plan --prompt "Fix the tests"
+```
+
+### Method 2: Using uvx from current directory
+
+Run Laser via the console script entrypoint:
+
+```bash
+cd /path/to/laser
+uvx --from . laser
+```
+
+This method:
+- Installs Laser from the current directory (`.`)
+- Uses the console script defined in `pyproject.toml`
+- Useful for testing the installed package behavior
+
+**With flags:**
+
+```bash
+uvx --from . laser --model openai/gpt-5.2-codex
+uvx --from . laser --cwd ../test-repo
+```
+
+## Entry Points
+
+Laser has two entry points defined in `laser/main.py`:
+
+### 1. Console script entry point
+
+```python
+def run() -> None:
+    check_deps()
+    asyncio.run(main())
+```
+
+This is the main entry point used when you run `laser` from the command line. It:
+1. Calls `check_deps()` to verify ripgrep is installed
+2. Runs the async `main()` function
+
+Referenced in `pyproject.toml` as:
+```toml
+[project.scripts]
+laser = "laser.main:run"
+```
+
+### 2. CLI function
+
+```python
+def cli() -> None:
+    asyncio.run(main())
+```
+
+This entry point skips the dependency check and goes straight to `main()`. Useful for testing or when you've already verified dependencies.
+
+## Understanding check_deps()
+
+The `check_deps()` function is crucial for Laser's startup. Here's the implementation from `laser/main.py:157-169`:
+
+```python
+def check_deps() -> None:
+    missing: list[tuple[str, str]] = []
+
+    if shutil.which("rg") is None:
+        missing.append(
+            ("ripgrep (rg)", "https://github.com/BurntSushi/ripgrep#installation")
+        )
+
+    if missing:
+        console.print("Missing required dependencies:\n")
+        for name, url in missing:
+            console.print(f"- {name}: please install from {url}")
+        raise SystemExit(1)
+```
+
+**How it works:**
+
+1. Uses `shutil.which("rg")` to check if ripgrep is in the system PATH
+2. Builds a list of missing dependencies with their installation URLs
+3. If any dependencies are missing:
+   - Prints a user-friendly error message
+   - Exits with code 1 (failure)
+
+**Adding new dependencies:**
+
+To require additional tools, add them to the check:
+
+```python
+def check_deps() -> None:
+    missing: list[tuple[str, str]] = []
+
+    if shutil.which("rg") is None:
+        missing.append(
+            ("ripgrep (rg)", "https://github.com/BurntSushi/ripgrep#installation")
+        )
+    
+    # Example: require git
+    if shutil.which("git") is None:
+        missing.append(
+            ("git", "https://git-scm.com/downloads")
+        )
+
+    if missing:
+        console.print("Missing required dependencies:\n")
+        for name, url in missing:
+            console.print(f"- {name}: please install from {url}")
+        raise SystemExit(1)
+```
+
+## Development Workflow
+
+### 1. Make changes to the code
+
+Edit files in your Laser checkout:
+
+```bash
+# Example: modify the system prompt
+vim laser/main.py
+```
+
+### 2. Run your modified version
+
+```bash
+uv run python -m laser --cwd /path/to/test/repo
+```
+
+### 3. Test in a sample repository
+
+Create a test repo to verify behavior:
+
+```bash
+mkdir ~/laser-test
+cd ~/laser-test
+git init
+echo "print('hello')" > test.py
+
+# Run your development version
+cd /path/to/laser
+uv run python -m laser --cwd ~/laser-test
+```
+
+### 4. Format code
+
+Laser uses Ruff for formatting (see `AGENTS.md`):
+
+```bash
+uvx ruff format laser/main.py
+```
+
+## Testing Different Models
+
+When developing, test with different providers:
+
+```bash
+# Test with Anthropic
+uv run python -m laser --model anthropic/claude-opus-4-5
+
+# Test with OpenAI
+export OPENAI_API_KEY="your-key"
+uv run python -m laser --model openai/gpt-5.2-codex
+
+# Test with Google
+export GOOGLE_API_KEY="your-key"
+uv run python -m laser --model google/gemini-3-pro-preview
+```
+
+## Understanding the Project Structure
+
+Key files when developing:
+
+- **`laser/main.py`** - Main entry point, argument parsing, chat loop
+- **`pyproject.toml`** - Package configuration, dependencies, console scripts
+- **`AGENTS.md`** - Repository instructions (used by Laser itself)
+- **`README.md`** - User-facing documentation
+
+## Modifying Provider Configuration
+
+Providers are configured in `laser/main.py:24-29`:
+
+```python
+PROVIDER_CONFIGS = {
+    "anthropic": (Anthropic, {}),
+    "google": (GoogleGenAI, {}),
+    "openai": (OpenAIResponses, {}),
+    "chat": (OpenAILegacy, {}),
+}
+```
+
+To add a new provider:
+
+1. Import the provider class from `kosong`
+2. Add it to `PROVIDER_CONFIGS`
+3. Document the required environment variables
+
+## Non-interactive Testing
+
+Test changes quickly with `--prompt`:
+
+```bash
+uv run python -m laser --prompt "List all Python files" --cwd ~/test-repo
+```
+
+This runs a single task and exits, perfect for:
+- Automated testing
+- CI/CD pipelines
+- Quick verification of changes
+
+## Debugging Tips
+
+### Add debug output
+
+Use the Rich console already imported:
+
+```python
+from rich.console import Console
+
+console = Console()
+console.print("[yellow]Debug:[/yellow] variable =", some_variable)
+```
+
+### Test the bash tool
+
+The `BashTool` class handles command execution. Test it by:
+
+1. Adding print statements in `BashTool.__call__()` (lines 245-266)
+2. Running a command-heavy task
+3. Observing stdout/stderr handling
+
+### Inspect chat history
+
+Add logging in the main loop to see messages:
+
+```python
+# In main(), after kosong.step()
+import json
+print(json.dumps([msg.model_dump() for msg in history], indent=2))
+```

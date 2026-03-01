@@ -1,0 +1,295 @@
+---
+title: Planning Mode
+description: Use planning mode to create task checklists before making changes
+---
+
+Planning mode instructs Laser to create a Markdown checklist file before taking action. This is useful for complex tasks where you want to review the planned steps first, or track progress on multi-step changes.
+
+## Enabling Planning Mode
+
+### At Startup
+
+Use the `--plan` flag when starting Laser:
+
+```bash
+laser --plan
+```
+
+Every task you request will generate a plan file before any code changes.
+
+### Toggle During a Session
+
+You can enable or disable planning mid-session:
+
+```text
+laser> /plan
+```
+
+```text
+╭───────────────────────────╮
+│ /plan                     │
+│ Planning is now enabled.  │
+╰───────────────────────────╯
+```
+
+Run `/plan` again to disable it.
+
+## How Planning Works
+
+<Steps>
+  <Step title="You describe a task">
+    ```text
+    laser> Refactor the authentication system to use JWT tokens instead of sessions
+    ```
+  </Step>
+
+  <Step title="Laser creates a plan file">
+    Laser generates a `plans/<task>_plan.md` file with a checklist:
+
+    ```bash
+    $: Create plans directory and write refactor_auth_plan.md
+    ```
+
+    The plan file contains:
+
+    ```markdown
+    # Refactor authentication to JWT
+
+    - [ ] Research current session implementation (src/auth/session.py)
+    - [ ] Install JWT library (e.g., PyJWT)
+    - [ ] Create JWT utility functions (generate, verify, decode)
+    - [ ] Update login endpoint to return JWT tokens
+    - [ ] Add JWT middleware to verify tokens on protected routes
+    - [ ] Update user authentication flow in frontend
+    - [ ] Remove session-related code
+    - [ ] Update tests
+    - [ ] Update documentation
+    ```
+  </Step>
+
+  <Step title="Laser executes the plan">
+    After writing the plan, Laser proceeds with implementation. As it works, it updates the checklist:
+
+    ```markdown
+    - [x] Research current session implementation (src/auth/session.py)
+    - [x] Install JWT library (e.g., PyJWT)
+    - [x] Create JWT utility functions (generate, verify, decode)
+    - [ ] Update login endpoint to return JWT tokens
+    - [ ] Add JWT middleware to verify tokens on protected routes
+    ...
+    ```
+  </Step>
+
+  <Step title="Track progress">
+    You can open the plan file in your editor to see real-time progress:
+
+    ```bash
+    cat plans/refactor_auth_plan.md
+    ```
+  </Step>
+</Steps>
+
+## Plan File Location
+
+Plan files are always created in the `plans/` directory at the repository root:
+
+```
+your-repo/
+├── plans/
+│   ├── refactor_auth_plan.md
+│   ├── add_search_feature_plan.md
+│   └── fix_pagination_bug_plan.md
+├── src/
+└── ...
+```
+
+Laser creates the `plans/` directory if it doesn't exist.
+
+## Plan Naming
+
+Laser derives a `<task_slug>` from your request using snake_case:
+
+| Request | Plan File |
+|---------|----------|
+| "Add user search feature" | `plans/add_user_search_plan.md` |
+| "Fix pagination in the admin panel" | `plans/fix_pagination_admin_plan.md` |
+| "Refactor database queries" | `plans/refactor_db_queries_plan.md` |
+
+## Dynamic Planning
+
+Laser updates the plan as it works:
+
+- **Checks off completed items** with `[x]`
+- **Adds new items** if it discovers additional work
+- **Removes items** that turn out to be unnecessary
+- **Keeps the plan accurate** as the task evolves
+
+### Example: Plan Evolution
+
+Initial plan:
+
+```markdown
+- [ ] Update login endpoint
+- [ ] Update logout endpoint
+- [ ] Add JWT middleware
+```
+
+After discovering existing middleware:
+
+```markdown
+- [x] Update login endpoint
+- [ ] Update logout endpoint
+- [x] JWT middleware already exists in src/middleware/auth.py
+- [ ] Configure existing middleware for JWT
+```
+
+## Combining with Non-Interactive Mode
+
+You can use planning mode with single-shot prompts:
+
+```bash
+laser --plan --prompt "Add rate limiting to all API endpoints"
+```
+
+Laser will:
+
+1. Create a plan file
+2. Execute the plan
+3. Exit when complete
+
+The plan file remains for your review.
+
+## When to Use Planning Mode
+
+<CardGroup cols={2}>
+  <Card title="Complex multi-file changes" icon="folder-tree">
+    Refactoring across multiple modules benefits from upfront planning
+  </Card>
+  <Card title="Unfamiliar codebases" icon="magnifying-glass">
+    Planning helps you understand the scope before making changes
+  </Card>
+  <Card title="Long-running tasks" icon="clock">
+    Track progress on tasks that take multiple iterations
+  </Card>
+  <Card title="Collaboration" icon="users">
+    Share the plan with teammates before Laser makes changes
+  </Card>
+</CardGroup>
+
+## Reviewing Plans Before Execution
+
+If you want to review the plan before Laser acts on it:
+
+<Steps>
+  <Step title="Request the plan only">
+    ```text
+    laser> Create a plan for adding user authentication but don't implement it yet
+    ```
+  </Step>
+
+  <Step title="Review the plan file">
+    Open `plans/<task>_plan.md` in your editor and review the checklist.
+  </Step>
+
+  <Step title="Adjust if needed">
+    Edit the plan file manually to add, remove, or reorder steps.
+  </Step>
+
+  <Step title="Ask Laser to follow the plan">
+    ```text
+    laser> Implement the authentication plan in plans/add_user_auth_plan.md
+    ```
+  </Step>
+</Steps>
+
+## Plan File Format
+
+Plan files use standard Markdown checkbox syntax:
+
+```markdown
+# Task Title
+
+## Phase 1: Preparation
+- [ ] Research existing implementation
+- [ ] Identify files to change
+
+## Phase 2: Implementation
+- [ ] Update src/auth.py
+- [ ] Add tests in tests/test_auth.py
+- [ ] Run `pytest tests/test_auth.py`
+
+## Phase 3: Cleanup
+- [ ] Remove deprecated functions
+- [ ] Update README.md
+```
+
+You can add sections, comments, and structure as needed.
+
+## Example: Database Migration Task
+
+Here's a real-world example of using planning mode for a database migration:
+
+```bash
+laser --plan --prompt "Migrate from SQLite to PostgreSQL"
+```
+
+Generated plan (`plans/migrate_sqlite_to_postgres_plan.md`):
+
+```markdown
+# Migrate from SQLite to PostgreSQL
+
+- [ ] Install psycopg2 database adapter
+- [ ] Create PostgreSQL connection configuration
+- [ ] Update database URLs in config files
+- [ ] Export data from SQLite (sqlite3 .dump)
+- [ ] Create PostgreSQL schema
+- [ ] Import data to PostgreSQL
+- [ ] Update ORM/query code for PostgreSQL-specific syntax
+- [ ] Run all tests with PostgreSQL
+- [ ] Update deployment documentation
+- [ ] Create rollback plan
+```
+
+As Laser works through this, you can monitor progress and intervene if needed.
+
+## Disabling Planning for Simple Tasks
+
+If you're in planning mode but have a quick task that doesn't need a plan:
+
+```text
+laser> /plan
+```
+
+(Disables planning)
+
+```text
+laser> Fix the typo in README.md, change "authentication" to "authorization" on line 42
+```
+
+(No plan file created for this simple fix)
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Review plans for large changes" icon="file-magnifying-glass">
+    Before Laser makes significant changes, read the plan to ensure it aligns with your expectations.
+  </Accordion>
+
+  <Accordion title="Keep plans for documentation" icon="book">
+    Plan files serve as a record of what was done and why. Commit them to version control.
+  </Accordion>
+
+  <Accordion title="Edit plans manually" icon="pen">
+    If Laser's plan misses something, edit the file and ask Laser to follow the updated plan.
+  </Accordion>
+
+  <Accordion title="Use with repository instructions" icon="book-bookmark">
+    Combine planning mode with `AGENTS.md` to ensure Laser follows your project's conventions.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+- Learn about [repository instructions](/configuration/agents-file) to guide Laser's plans
+- Explore [non-interactive mode](/usage/non-interactive-mode) for automated workflows
+- See [basic workflow](/examples/basic-workflow) for everyday usage patterns

@@ -1,0 +1,136 @@
+---
+title: Interactive Mode
+description: Chat with Laser in an interactive session to inspect files, edit code, and run commands
+---
+
+Interactive mode is Laser's default mode. When you run `laser` without the `--prompt` flag, you enter an interactive chat session where you can have a back-and-forth conversation with the agent.
+
+## Starting Interactive Mode
+
+Simply run Laser without any prompt argument:
+
+```bash
+laser
+```
+
+You'll see a banner with session information:
+
+```
+┌────────────────────────────────────────┐
+│ Laser                                  │
+│ - Model: openai/gpt-5.2-codex          │
+│ - Directory: /path/to/your/repo        │
+│ - Tip: type /quit to exit              │
+│        type /reset to clear history    │
+└────────────────────────────────────────┘
+```
+
+## Basic Workflow
+
+<Steps>
+  <Step title="Describe what you want">
+    At the `laser >` prompt, describe the change or task you want Laser to perform:
+    
+    ```
+    laser > Add input validation to the user registration endpoint
+    ```
+  </Step>
+  
+  <Step title="Laser inspects and acts">
+    Laser will:
+    - Search for relevant files using `rg`
+    - Read existing code
+    - Make edits
+    - Run tests or other commands
+    
+    You'll see tool calls as they execute:
+    
+    ```
+    $: rg -n "def register" .
+    $: cat src/api/auth.py
+    $: sed -i 's/.../.../' src/api/auth.py
+    ```
+  </Step>
+  
+  <Step title="Review and iterate">
+    Laser will respond with a summary of changes. You can:
+    - Ask follow-up questions
+    - Request modifications
+    - Have it run additional commands
+    
+    The conversation history is maintained throughout the session.
+  </Step>
+</Steps>
+
+## Multi-line Input
+
+For complex or multi-part requests, use a trailing backslash (`\`) to continue your input across multiple lines:
+
+```
+laser > Write a script that:\
+...  - scans all Python files\
+...  - prints unused imports\
+...  - and suggests fixes
+```
+
+<Note>
+  Laser will keep reading lines until you send a line **without** a trailing backslash.
+</Note>
+
+### How It Works
+
+From the implementation:
+
+- If your first line ends with `\`, Laser enters multi-line mode
+- Each subsequent line ending with `\` is added to the input
+- The final line (without `\`) completes the input
+- All trailing backslashes are stripped and lines are joined with newlines
+
+### Example Session
+
+```
+laser > Refactor the authentication module to:\
+...  - extract validation logic into separate functions\
+...  - add type hints\
+...  - write unit tests for each validator
+```
+
+This is equivalent to sending:
+
+```
+Refactor the authentication module to:
+- extract validation logic into separate functions
+- add type hints
+- write unit tests for each validator
+```
+
+## Conversation History
+
+Laser maintains the full conversation history during your session. This means:
+
+- Laser remembers previous changes and context
+- You can refer to earlier parts of the conversation
+- Follow-up requests build on previous work
+
+<Tip>
+  If the conversation gets too long or you want a fresh start, use the `/reset` command to clear history.
+</Tip>
+
+## Working Directory
+
+By default, Laser operates in your current directory. To work in a different repository:
+
+```bash
+laser --cwd /path/to/your/repo
+```
+
+The banner will show which directory Laser is operating in.
+
+## Exiting Interactive Mode
+
+To exit Laser, use the `/quit` command or press `Ctrl+C`:
+
+```
+laser > /quit
+Goodbye sad computer making shutdown noises...
+```

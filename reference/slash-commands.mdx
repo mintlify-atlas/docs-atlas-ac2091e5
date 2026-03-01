@@ -1,0 +1,127 @@
+---
+title: Slash Commands
+description: Interactive commands available in Laser's chat interface
+---
+
+When running Laser in interactive mode, you can use these special commands to control the session:
+
+## /quit
+
+Exit the Laser session.
+
+```text
+> /quit
+Goodbye sad computer making shutdown noises...
+```
+
+## /reset
+
+Clear the conversation history and start a fresh context.
+
+```text
+> /reset
+╭─ /reset ──────────────────────────╮
+│ Conversation reset. History cleared. │
+╰───────────────────────────────────╯
+```
+
+Use this when:
+- You want to start a new task unrelated to previous context
+- The conversation history is getting too long
+- You need to clear potentially confusing context
+
+## /usage
+
+Display cumulative token usage statistics for the current session.
+
+```text
+> /usage
+╭─ /usage ──────────────────────────╮
+│ Token usage (cumulative)           │
+│                                     │
+│ Input :    12345  (other=8000, cache_read=3000, cache_create=1345, cached=35.2%) │
+│ Output:     3456                    │
+│                                     │
+│ Total :    15801                    │
+╰───────────────────────────────────╯
+```
+
+The display includes:
+- **Input**: Total input tokens broken down by:
+  - `other`: Regular input tokens
+  - `cache_read`: Tokens read from cache (cost savings)
+  - `cache_create`: Tokens used to create cache entries
+  - `cached`: Percentage of input that was cached
+- **Output**: Total output tokens generated
+- **Total**: Combined input and output tokens
+
+## /plan
+
+Toggle planning mode on or off for the current session.
+
+```text
+> /plan
+╭─ /plan ────────────────────────────╮
+│ Planning is now enabled.            │
+╰────────────────────────────────────╯
+```
+
+When planning mode is enabled, Laser will:
+1. Create a plan file at `plans/<task_slug>_plan.md` before executing tasks
+2. Write the plan as a Markdown checklist with explicit files and commands
+3. Update the checklist as work progresses
+
+Toggle again to disable:
+```text
+> /plan
+╭─ /plan ────────────────────────────╮
+│ Planning is now disabled.           │
+╰────────────────────────────────────╯
+```
+
+<Note>
+  Planning mode can also be enabled at startup with the `--plan` CLI flag.
+</Note>
+
+## Shell Commands (!)
+
+Run shell commands directly in your current working directory by prefixing with `!`.
+
+```text
+> !pytest -q
+...
+3 passed in 0.42s
+```
+
+```text
+> !git status -sb
+## main...origin/main
+ M laser/main.py
+```
+
+**Key differences from the bash tool:**
+- Shell commands with `!` run **locally** and bypass the agent
+- The agent doesn't see the output
+- Useful for quick checks without consuming tokens or adding to conversation history
+- Both stdout and stderr are displayed
+
+**Examples:**
+```text
+!git diff
+!rg "TODO" .
+!pytest tests/
+!cat config.json
+```
+
+## Multi-line Input
+
+End a line with a backslash (`\`) to continue input on the next line:
+
+```text
+> Write a script that:\
+... - scans all Python files\
+... - prints unused imports\
+... - and suggests fixes
+```
+
+Laser will wait for lines until you send one without a trailing backslash.

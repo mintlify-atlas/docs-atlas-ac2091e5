@@ -1,0 +1,87 @@
+---
+title: Introduction
+description: Laser is a small, terminal-based coding agent you run inside a repository
+---
+
+## What is Laser?
+
+Laser is a small, terminal-based coding agent you run inside a repository. It brings AI-powered assistance directly to your development workflow, allowing you to:
+
+- Read and edit files in the repo
+- Run shell commands (tests, formatters, build steps)
+- Iterate with you on changes, keeping the workflow repo-first
+
+Built on [`kosong`](https://pypi.org/project/kosong/), Laser supports multiple model providers including OpenAI, Anthropic, and Google.
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Repository-First" icon="folder-tree">
+    Works directly in your repository, understanding your codebase structure and respecting `.gitignore`
+  </Card>
+  <Card title="Multiple Providers" icon="network-wired">
+    Supports OpenAI, Anthropic, Google, and OpenAI-compatible providers
+  </Card>
+  <Card title="Safe by Default" icon="shield-check">
+    Conservative approach: prefers `rg` for search, avoids destructive commands, checks diffs after edits
+  </Card>
+  <Card title="Interactive Commands" icon="terminal">
+    Slash commands for session management, local shell execution, and multi-line input support
+  </Card>
+</CardGroup>
+
+## How Laser Works
+
+Laser operates as an interactive coding assistant that:
+
+1. Inspects your repository to understand its structure
+2. Uses fast search tools like ripgrep (`rg`) to find code
+3. Makes targeted edits to files based on your requests
+4. Runs commands to verify changes (tests, linters, etc.)
+5. Reviews diffs and iterates with you
+
+Laser is intentionally conservative:
+
+<Note>
+  Laser avoids destructive commands like `rm -rf` or `git reset --hard`, checks diffs after edits, and respects your repository's `.gitignore` patterns.
+</Note>
+
+## Repository Instructions
+
+If your repository has an `AGENTS.md` file at its root, Laser will read it at the start of each task and follow those repo-specific rules. This is useful for documenting:
+
+- How to run tests
+- Formatting/linting commands
+- Code style conventions
+- Release steps
+
+<Tip>
+  The `AGENTS.md` file is checked at the start of each task, making it easy to maintain consistent workflows across your team.
+</Tip>
+
+## Get Started
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Install Laser using `uv` and get set up in minutes
+  </Card>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Learn the basic commands and start using Laser right away
+  </Card>
+</CardGroup>
+
+## Model Support
+
+Laser supports multiple model backends configured via the `--model` flag:
+
+```bash
+laser --model openai/gpt-5.2-codex
+laser --model anthropic/claude-opus-4-5
+laser --model google/gemini-3-pro-preview
+```
+
+Providers are selected using the `<provider>/<model>` format. Set the appropriate API key environment variable before running:
+
+- OpenAI: `OPENAI_API_KEY`
+- Anthropic: `ANTHROPIC_API_KEY`
+- Google: `GOOGLE_API_KEY`

@@ -1,80 +1,274 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quick Start
+description: Get started with Laser in minutes and learn the essential commands
 ---
 
-## Get started in three steps
+## Starting Laser
 
-Get your documentation site running locally and make your first customization.
+Navigate to your repository and start Laser:
 
-### Step 1: Set up your local environment
+```bash
+laser
+```
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
+You'll see a welcome banner with your current model and directory:
+
+```
+╭─────────────────────────────────────────╮
+│ Laser                                   │
+│ - Model: openai/gpt-5.2-codex          │
+│ - Directory: /path/to/your/repo        │
+│ - Tip: type /quit to exit              │
+│        type /reset to clear history    │
+╰─────────────────────────────────────────╯
+```
+
+## Basic Workflow
+
+<Steps>
+  <Step title="Start Laser in your repository">
+    ```bash
+    cd /path/to/your/repo
+    laser
+    ```
+  </Step>
+  
+  <Step title="Describe what you want to change">
+    Tell Laser what you need in plain language:
     
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
+    ```
+    Add error handling to the user authentication function
+    ```
+  </Step>
+  
+  <Step title="Review and iterate">
+    Laser will:
+    - Inspect your repository
+    - Make the necessary edits
+    - Run commands to verify changes
+    - Show you diffs
     
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+    You can continue the conversation to refine the changes.
+  </Step>
+</Steps>
 
-### Step 2: Deploy your changes
+## Command Line Options
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+Laser supports several useful flags:
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+<CodeGroup>
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+```bash Choose a Model
+laser --model openai/gpt-5.2-codex
+laser --model anthropic/claude-opus-4-5
+laser --model google/gemini-3-pro-preview
+```
 
-### Step 3: Go live
+```bash Change Directory
+laser --cwd /path/to/your/repo
+```
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+```bash Non-Interactive Mode
+laser --prompt "Run tests and summarize failures"
+```
 
-## Next steps
+```bash Planning Mode
+laser --plan
+```
 
-Now that you have your docs running, explore these key features:
+```bash Max Tokens (Anthropic only)
+laser --max-tokens 4096
+```
 
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
+</CodeGroup>
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  The `--cwd` flag changes the working directory where Laser operates (reads/writes files and runs commands).
 </Note>
+
+## Interactive Commands
+
+While Laser is running, you can use these slash commands:
+
+| Command | Description |
+|---------|-------------|
+| `/usage` | Print cumulative token usage for the current session |
+| `/reset` | Clear the current chat history and start fresh |
+| `/quit` | Exit Laser |
+
+### Running Local Shell Commands
+
+You can run shell commands directly by prefixing with `!`:
+
+```bash
+!pytest -q
+!git status
+!npm run build
+```
+
+The command runs in your current working directory and prints stdout/stderr.
+
+## Multi-Line Input
+
+For longer requests, use a trailing backslash (`\`) to continue to the next line:
+
+```text
+Write a script that:\
+- scans all Python files\
+- prints unused imports\
+- and suggests fixes
+```
+
+Laser will continue reading lines until you send one without a trailing backslash.
+
+## Planning Mode
+
+When you use the `--plan` flag, Laser writes a checklist plan file before taking actions:
+
+```bash
+laser --plan
+```
+
+Laser will:
+
+1. Create a `plans/` directory if needed
+2. Write a Markdown checklist to `plans/<task_slug>_plan.md`
+3. Update the checklist as it works (checking items off, adding/removing items)
+4. Proceed with the task
+
+<Tip>
+  Planning mode is useful for complex tasks where you want visibility into Laser's step-by-step approach.
+</Tip>
+
+## Example Session
+
+Here's a typical interactive session:
+
+```bash
+# Start Laser
+$ laser
+
+ laser > Add type hints to the database module
+
+# Laser inspects files, makes edits, and shows results
+
+ laser > Run the type checker to verify
+
+# Laser runs mypy or pyright
+
+ laser > /usage
+
+# Shows token usage statistics
+
+ laser > /quit
+```
+
+## Working with AGENTS.md
+
+If your repository has an `AGENTS.md` file at the root, Laser will read it at the start of each task and follow those instructions.
+
+Example `AGENTS.md`:
+
+```markdown
+## response style
+just respond like you are TARS from the movie Interstellar
+
+## formatting
+run `uvx ruff format <file>` after editing python files
+```
+
+<Warning>
+  If `AGENTS.md` conflicts with Laser's built-in safety rules (like avoiding destructive commands), Laser's rules take priority.
+</Warning>
+
+## Model Providers
+
+Laser supports multiple model providers using the `<provider>/<model>` format:
+
+<Tabs>
+  <Tab title="OpenAI">
+    ```bash
+    export OPENAI_API_KEY="your-key"
+    laser --model openai/gpt-5.2-codex
+    ```
+  </Tab>
+  
+  <Tab title="Anthropic">
+    ```bash
+    export ANTHROPIC_API_KEY="your-key"
+    laser --model anthropic/claude-opus-4-5
+    ```
+  </Tab>
+  
+  <Tab title="Google">
+    ```bash
+    export GOOGLE_API_KEY="your-key"
+    laser --model google/gemini-3-pro-preview
+    ```
+  </Tab>
+  
+  <Tab title="OpenAI-Compatible">
+    ```bash
+    export OPENAI_BASE_URL="https://your-endpoint"
+    export OPENAI_API_KEY="your-key"
+    laser --model chat/glm-4.7
+    ```
+  </Tab>
+</Tabs>
+
+## Tips for Effective Use
+
+<CardGroup cols={2}>
+  <Card title="Be Specific" icon="bullseye">
+    Provide clear instructions about what you want changed and why
+  </Card>
+  
+  <Card title="Review Diffs" icon="code-compare">
+    Always review the changes Laser makes before committing
+  </Card>
+  
+  <Card title="Use Planning Mode" icon="list-check">
+    For complex tasks, use `--plan` to see Laser's approach
+  </Card>
+  
+  <Card title="Leverage AGENTS.md" icon="file-lines">
+    Document repo-specific workflows in `AGENTS.md` for consistent results
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Shell commands fail">
+    Laser surfaces stderr from failed commands. Try:
+    
+    - Re-running the exact command manually
+    - Checking that required tools are installed
+    - Ensuring you're in the correct directory (use `--cwd`)
+  </Accordion>
+  
+  <Accordion title="Agent operates in wrong directory">
+    Use the `--cwd` flag to specify the correct directory:
+    
+    ```bash
+    laser --cwd /path/to/repo
+    ```
+  </Accordion>
+  
+  <Accordion title="Model provider errors">
+    Ensure you've set the correct API key environment variable:
+    
+    - OpenAI: `OPENAI_API_KEY`
+    - Anthropic: `ANTHROPIC_API_KEY`
+    - Google: `GOOGLE_API_KEY`
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+Now that you know the basics, explore more:
+
+- Experiment with different models to find what works best
+- Create an `AGENTS.md` file for your repository
+- Try planning mode for complex refactoring tasks
+- Use non-interactive mode for automated workflows
